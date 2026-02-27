@@ -8,25 +8,25 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const login = useLogin();
+  const { data, error, loading, post } = useLogin();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    login.post({ email, password });
+    post({ email, password });
   };
 
   useEffect(() => {
-    if (!login.data) return;
+    if (!data) return;
 
     navigate("/v1/dashboard");
-  }, [login.data]);
+  }, [data]);
 
   useEffect(() => {
-    if (!login.error) return;
+    if (!error) return;
 
-    toast.error("Credencailes incorrect");
-  }, [login.error]);
+    toast.error("Credenciales incorrectas");
+  }, [error]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
