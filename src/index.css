@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@import "react-toastify/dist/ReactToastify.css";
+
+@theme {
+  /* 🔵 Color principal */
+  --color-primary: #2b8cee;
+  --color-primary-hover: #1f6fd1;
+
+  /* 🌞 Fondos */
+  --color-background-light: #f6f7f8;
+  --color-background-dark: #101922;
+
+  /* 🧱 Grises usados en el mock */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+
+  /* 🫧 Transparencias usadas */
+  --color-primary-10: rgba(43, 140, 238, 0.1);
+  --color-primary-20: rgba(43, 140, 238, 0.2);
+}
+
+body {
+  font-family: "Inter", sans-serif;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
