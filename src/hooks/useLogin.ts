@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { toast } from 'react-toastify';
 import { authService } from '../domain/services/auth.service';
 import { type LoginCredentials, type LoginResponse } from '../domain/services/auth.service';
 
