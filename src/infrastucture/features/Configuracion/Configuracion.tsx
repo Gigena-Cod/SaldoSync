@@ -1,10 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoMdAdd, IoMdInformationCircle } from "react-icons/io";
 import AddCardModal from "./components/AddCardModal";
+import EditCardModal from "./components/EditCardModal";
 import Card from "./components/Card/Card";
+import { useCards } from "../../../hooks/useCards";
+import type { Card as CardType } from "../../../domain/services/cards.service";
 
 export default function Tarjetas() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState<CardType | null>(null);
+  const [localCards, setLocalCards] = useState<CardType[]>([]);
+  const { cards, loading, error, createCard, updateCard } = useCards();
+
+  // Sincronizar localCards con cards del hook
+  useEffect(() => {
+    setLocalCards(cards);
+  }, [cards]);
 
   const handleAddCardClick = () => {
     setIsModalOpen(true);
@@ -12,6 +24,41 @@ export default function Tarjetas() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+  };
+
+  const handleCreateCard = async (cardData: any) => {
+    const newCard = await createCard(cardData);
+    if (newCard) {
+      // Agregar la nueva tarjeta al estado local
+      setLocalCards(prev => [...prev, newCard]);
+      setIsModalOpen(false); // Cerrar modal
+    }
+    return newCard;
+  };
+
+  const handleEditCard = (card: CardType) => {
+    setEditingCard(card);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingCard(null);
+  };
+
+  const handleUpdateCard = async (cardData: any) => {
+    if (!editingCard) return null;
+    
+    const updatedCard = await updateCard(editingCard.id, cardData);
+    if (updatedCard) {
+      // Actualizar la tarjeta en el estado local
+      setLocalCards(prev => prev.map(card => 
+        card.id === editingCard.id ? updatedCard : card
+      ));
+      setIsEditModalOpen(false); // Cerrar modal
+      setEditingCard(null);
+    }
+    return updatedCard;
   };
 
   return (
@@ -26,60 +73,75 @@ export default function Tarjetas() {
               Administra tus tarjetas de débito y crédito vinculadas.
             </p>
           </div>
-
-          <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
-            <span className="material-symbols-outlined">add</span>
-            Agregar Nueva Tarjeta
-          </button>
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Tarjeta 1 */}
-          <Card
-            type="Visa Débito"
-            holder="NAUEL GONZALEZ"
-            number="4582"
-            balance="$45.000,00"
-            gradient="from-slate-900 to-slate-700"
-          />
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-slate-200 dark:bg-slate-700 rounded-xl h-[340px]"></div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 text-primary hover:underline"
+            >
+              Reintentar
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Tarjetas dinámicas */}
+            {localCards.map((card) => (
+              <Card
+                key={card.id}
+                type={`${card.bankName} ${card.type === "debito" ? "Débito" : "Crédito"}`}
+                holder={card.cardHolder}
+                number={card.id.slice(-4)} // Usar los últimos 4 caracteres del ID
+                balance={
+                  card.type === "debito"
+                    ? `$${card.currentDebt.toLocaleString()}`
+                    : undefined
+                }
+                limit={
+                  card.creditLimit
+                    ? `$${card.creditLimit.toLocaleString()}`
+                    : undefined
+                }
+                closing={new Date(card.expirationDate).toLocaleDateString(
+                  "es-ES",
+                  { month: "short", day: "numeric" },
+                )}
+                gradient={
+                  card.type === "debito"
+                    ? "from-slate-900 to-slate-700"
+                    : "from-indigo-600 to-purple-700"
+                }
+                credit={card.type === "credito"}
+                onEdit={() => handleEditCard(card)}
+              />
+            ))}
 
-          {/* Tarjeta 2 */}
-          <Card
-            type="Mastercard Crédito"
-            holder="CAMILA SUAREZ"
-            number="8812"
-            limit="$250.000"
-            closing="22 Oct"
-            gradient="from-indigo-600 to-purple-700"
-            credit
-          />
-
-          {/* Tarjeta 3 */}
-          <Card
-            type="Visa Crédito"
-            holder="NAUEL GONZALEZ"
-            number="1024"
-            limit="$500.000"
-            closing="15 Nov"
-            gradient="from-blue-900 via-blue-800 to-indigo-900"
-            credit
-          />
-
-          {/* Botón agregar */}
-          <button 
-            onClick={handleAddCardClick}
-            className="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800/50 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-6 min-h-[340px] hover:bg-slate-200 dark:hover:bg-slate-800 transition-all group"
-          >
-            <div className="size-12 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-slate-400 group-hover:text-primary transition-all shadow-sm mb-4">
-              <IoMdAdd className="text-3xl" />
-            </div>
-            <p className="font-bold text-slate-600 dark:text-slate-300">
-              Vincular otra tarjeta
-            </p>
-            <p className="text-xs text-slate-500 mt-1">Crédito o Débito</p>
-          </button>
-        </div>
+            {/* Botón agregar */}
+            <button
+              onClick={handleAddCardClick}
+              className="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800/50 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-6 min-h-[340px] hover:bg-slate-200 dark:hover:bg-slate-800 transition-all group"
+            >
+              <div className="size-12 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-slate-400 group-hover:text-primary transition-all shadow-sm mb-4">
+                <IoMdAdd className="text-3xl" />
+              </div>
+              <p className="font-bold text-slate-600 dark:text-slate-300">
+                Vincular otra tarjeta
+              </p>
+              <p className="text-xs text-slate-500 mt-1">Crédito o Débito</p>
+            </button>
+          </div>
+        )}
 
         {/* Seguridad */}
         <div className="mt-12 p-6 bg-primary/5 rounded-xl border border-primary/10 flex items-start gap-4">
@@ -94,8 +156,19 @@ export default function Tarjetas() {
       </div>
 
       {/* Modal */}
-      <AddCardModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      <AddCardModal 
+        isOpen={isModalOpen} 
+        onClose={handleCloseModal} 
+        onCardCreated={handleCreateCard}
+      />
+
+      {/* Edit Modal */}
+      <EditCardModal 
+        isOpen={isEditModalOpen} 
+        onClose={handleCloseEditModal} 
+        card={editingCard}
+        onCardUpdated={handleUpdateCard}
+      />
     </div>
   );
 }
-

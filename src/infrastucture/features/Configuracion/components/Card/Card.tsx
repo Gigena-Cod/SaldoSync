@@ -9,6 +9,7 @@ export default function Card({
   closing,
   gradient,
   credit = false,
+  onEdit,
 }: {
   type: string;
   holder: string;
@@ -18,9 +19,10 @@ export default function Card({
   closing?: string;
   gradient: string;
   credit?: boolean;
+  onEdit?: () => void;
 }) {
   return (
-    <div className="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all">
+    <div onClick={onEdit} className="flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all">
       <div className="p-6">
         {/* Visual */}
         <div
@@ -69,6 +71,8 @@ export default function Card({
           )}
         </div>
       </div>
+      
+     
     </div>
   );
 }
